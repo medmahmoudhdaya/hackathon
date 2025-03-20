@@ -1,60 +1,191 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snack Ideas Generator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Diet - نظام التغذية الذكي</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Add FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Custom CSS for Smooth Transitions -->
+  <style>
+    #sidebar {
+      transition: transform 0.3s ease-in-out;
+    }
+    #sidebarToggle {
+      transition: transform 0.3s ease-in-out;
+    }
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* Modal Styles */
+    #loaderModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold text-center mb-6">🍏 Snack Ideas Generator</h1>
-        
-        <!-- Form for entering ingredients and goal -->
-        <form method="POST" class="bg-white p-6 rounded-lg shadow-md mb-6">
-            <div class="mb-4">
-                <label for="ingredients" class="block text-sm font-medium mb-2">Ingredients:</label>
-                <input type="text" id="ingredients" name="ingredients" required
-                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="e.g., eggs, cucumber, tuna, bread, yogurt">
-            </div>
-            <div class="mb-4">
-                <label for="goal" class="block text-sm font-medium mb-2">Goal:</label>
-                <select id="goal" name="goal" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Select a goal (optional)</option>
-                    <option value="lose weight">Lose Weight</option>
-                    <option value="quick snack">Quick Snack</option>
-                    <option value="no sugar">No Sugar</option>
-                    <option value="high protein">High Protein</option>
-                    <option value="for kids">For Kids</option>
-                </select>
-            </div>
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200">
-                Generate Snack Ideas
-            </button>
-        </form>
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
+  <!-- Loader Modal -->
+  <div id="loaderModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+    <div class="loader"></div>
+  </div>
 
-        <!-- Display AI-generated snack ideas -->
-        {% if snack_ideas %}
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4">🍴 Snack Ideas</h2>
-            <ul class="space-y-2">
-                {% for idea in snack_ideas %}
-                <li class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <strong>{{ idea.split(':')[0] if ':' in idea else idea }}</strong>
-                    {% if ':' in idea %}<br>{{ idea.split(':')[1] }}{% endif %}
-                    <form method="POST" action="{{ url_for('add_to_plan') }}" class="mt-2">
-                        <input type="hidden" name="snack_id" value="{{ loop.index }}">
-                        <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 transition duration-200">
-                            Save This
-                        </button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
+  <!-- Sidebar -->
+  <div id="sidebar" class="fixed right-0 top-0 h-full w-64 bg-gray-800 text-gray-100 transform translate-x-full transition-transform duration-300 ease-in-out z-40">
+    <!-- Sidebar Toggle Button Fixed to Sidebar Edge -->
+    <button id="sidebarToggle" class="absolute -left-8 top-4 p-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-transform duration-300 ease-in-out">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="p-4">
+      <h2 class="text-2xl font-bold mb-4">القائمة الجانبية</h2>
+      <ul>
+        <li class="mb-2"><a href="/my_diet_plan" class="hover:text-teal-500 mb-4 inline-block">خطة النظام الغذائي الخاصة بي</a></li>
+        {% for snack in saved_snacks %}
+        <li class="mb-2">
+          <a href="{{ url_for('snack_details', snack_id=snack['id']) }}" class="hover:text-teal-500">
+            {{ snack['title'] }} - {{ snack['date'] }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
+  </div>
+
+  <div class="max-w-2xl w-full px-4">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-4 bg-teal-500 text-white rounded-lg">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Heading -->
+    <h1 class="text-4xl font-bold text-center mb-4">AI Diet - نظام التغذية الذكي</h1>
+
+    <!-- Creative Paragraph -->
+    <p class="text-gray-400 text-center mb-8">
+      اكتشف خطة الوجبات المثالية مع نظام التغذية الذكي! أدخل المكونات المتاحة لديك، اختر هدفك الغذائي، ودع خوارزميتنا الذكية تخلق لك خطة وجبات صحية ولذيذة ومخصصة لك.
+    </p>
+
+    <!-- Form -->
+    <form method="POST" action="/" id="mealForm">
+      <!-- Input Field with Icon -->
+      <div class="mb-4 relative">
+        <i class="fas fa-carrot absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <input
+          type="text"
+          name="ingredients"
+          placeholder="أدخل المكونات المتاحة..."
+          class="w-full pr-10 pl-6 py-3 bg-gray-800 border border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+        />
+      </div>
+
+      <!-- Select Box with Icon -->
+      <div class="mb-6 relative">
+        <i class="fas fa-bullseye absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <select
+          name="goal"
+          class="w-full pr-10 pl-6 py-3 bg-gray-800 border border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none"
+        >
+          <option value="no-sugar">بدون سكر</option>
+          <option value="high-protein">غني بالبروتين</option>
+          <option value="low-carb">قليل الكربوهيدرات</option>
+        </select>
+        <i class="fas fa-chevron-down absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+      </div>
+
+      <!-- Generate Button with Icon -->
+      <button
+        type="submit"
+        class="w-full px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all flex items-center justify-center"
+        id="generateButton"
+      >
+        <i class="fas fa-magic ml-2"></i>
+        <span id="buttonText">إنشاء خطة الوجبات</span>
+      </button>
+    </form>
+
+    <!-- Results Section (Conditional Display) -->
+    {% if show_results %}
+    <div id="results" class="mt-8">
+      <h2 class="text-2xl font-bold text-center mb-6">أفكار الوجبات الخفيفة المقترحة</h2>
+
+      <!-- Dynamic Snack Ideas -->
+      <div class="space-y-6">
+        {% for idea in structured_ideas %}
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg relative">
+          <!-- Save Button (Top-Left) -->
+          <form method="POST" action="/add_to_plan" class="absolute top-2 left-2" id="saveForm{{ idea.id }}">
+            <input type="hidden" name="snack_id" value="{{ idea.id }}">
+            <button
+              type="submit"
+              class="px-3 py-1 bg-teal-500 text-white rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all flex items-center justify-center"
+            >
+              <i class="fas fa-save text-sm"></i>
+            </button>
+          </form>
+          <!-- Snack Details -->
+          <h3 class="text-xl font-semibold mb-2">{{ idea.title }}</h3>
+          <p class="text-gray-400">{{ idea.description }}</p>
+          <ul class="mt-2 text-gray-400">
+            {% for step in idea.steps %}
+            <li>{{ step }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- JavaScript for Sidebar Toggle, Loader, and Flash Message -->
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('translate-x-full');
+      sidebarToggle.classList.toggle('rotate-180');
+    });
+
+    // Loader for Generate Button
+    const generateButton = document.getElementById('generateButton');
+    const loaderModal = document.getElementById('loaderModal');
+
+    generateButton.addEventListener('click', () => {
+      loaderModal.style.display = 'flex'; // Show the modal loader
+    });
+
+    // Hide loader when the page finishes loading (simulate for now)
+    window.addEventListener('load', () => {
+      loaderModal.style.display = 'none';
+    });
+
+    // Flash Message for Save Button
+
+  </script>
 </body>
 </html>

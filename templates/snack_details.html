@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تفاصيل الوجبة الخفيفة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Add FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
+  <div class="max-w-2xl w-full px-4">
+    <!-- Heading -->
+    <h1 class="text-4xl font-bold text-center mb-4">تفاصيل الوجبة الخفيفة</h1>
+
+    <!-- Snack Details -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-semibold mb-4">{{ snack.name }}</h2>
+      <p class="text-gray-400 mb-4">{{ snack.description }}</p>
+      <ul class="text-gray-400">
+        <li><strong>المكونات:</strong> {{ snack.ingredients }}</li>
+        <li><strong>الهدف:</strong> {{ snack.goal or "غير محدد" }}</li>
+        <li><strong>تاريخ الإنشاء:</strong> {{ snack.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+      </ul>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-8 text-center">
+      <a
+        href="{{ url_for('index') }}"
+        class="px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all flex items-center justify-center"
+      >
+        <i class="fas fa-arrow-left ml-2"></i>
+        العودة إلى الصفحة الرئيسية
+      </a>
+    </div>
+  </div>
+</body>
+</html>

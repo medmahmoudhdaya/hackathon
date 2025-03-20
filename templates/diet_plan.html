@@ -1,39 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Diet Plan</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Diet - خطة الوجبات الخاصة بي</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Add FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 text-gray-800">
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold text-center mb-6">📋 My Diet Plan</h1>
-        
-        <!-- Display saved snacks -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <ul class="space-y-2">
-                {% for diet_plan in diet_plans %}
-                <li class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <strong>{{ diet_plan.snack.name }}</strong><br>
-                    {{ diet_plan.snack.description }}
-                    <form method="POST" action="{{ url_for('remove_from_plan', diet_plan_id=diet_plan.id) }}" class="mt-2">
-                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition duration-200">
-                            Remove
-                        </button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
+  <div class="max-w-2xl w-full px-4">
+    <!-- Heading -->
+    <h1 class="text-4xl font-bold text-center mb-4">AI Diet - خطة الوجبات الخاصة بي</h1>
 
-        <!-- Back to home link -->
-        <div class="mt-6 text-center">
-            <a href="{{ url_for('index') }}" class="text-blue-500 hover:text-blue-600 transition duration-200">
-                ← Back to Home
-            </a>
+    <!-- Creative Paragraph -->
+    <p class="text-gray-400 text-center mb-8">
+      هنا يمكنك مشاهدة الوجبات الخفيفة التي قمت بحفظها في خطتك الغذائية. استمتع بوجباتك الصحية والمخصصة!
+    </p>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-4 bg-teal-500 text-white rounded-lg">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+        <!-- Back to Home Button -->
+        <div class="mt-4 mb-8 text-center">
+          <a
+            href="{{ url_for('index') }}"
+            class="px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all flex items-center justify-center"
+          >
+            <i class="fas fa-arrow-left ml-2"></i>
+            العودة إلى الصفحة الرئيسية
+          </a>
         </div>
+    <!-- Saved Snacks Section -->
+    <div class="space-y-6 mb-4">
+      {% if diet_plans %}
+        {% for plan in diet_plans %}
+          <div class="bg-gray-800 p-6 rounded-lg shadow-lg relative">
+            <!-- Remove Button (Top-Left) -->
+            <form method="POST" action="{{ url_for('remove_from_plan', diet_plan_id=plan.id) }}" class="absolute top-2 left-2">
+              <button
+                type="submit"
+                class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all flex items-center justify-center"
+              >
+                <i class="fas fa-trash text-sm"></i>
+              </button>
+            </form>
+            <!-- Snack Details -->
+            <h3 class="text-xl font-semibold mb-2">{{ plan.snack.name }}</h3>
+            <p class="text-gray-400">{{ plan.snack.description }}</p>
+            <ul class="mt-2 text-gray-400">
+              <li><i class="fas fa-check-circle text-teal-500 mr-2"></i>المكونات: {{ plan.snack.ingredients }}</li>
+              <li><i class="fas fa-check-circle text-teal-500 mr-2"></i>الهدف: {{ plan.snack.goal or "غير محدد" }}</li>
+              <li><i class="fas fa-check-circle text-teal-500 mr-2"></i>تم الإنشاء في: {{ plan.snack.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+            </ul>
+          </div>
+        {% endfor %}
+      {% else %}
+        <!-- No Snacks Message -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+          <p class="text-gray-400">لم تقم بحفظ أي وجبات خفيفة بعد.</p>
+        </div>
+      {% endif %}
     </div>
+
+  </div>
 </body>
 </html>
