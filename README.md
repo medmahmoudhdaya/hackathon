@@ -3,6 +3,8 @@
 Welcome to the **Healthy Snack Ideas Generator**!  
 This Flask-based web app helps users generate healthy snack ideas based on the ingredients they have at home. It uses the **Groq API** to power the AI-driven snack suggestions. Users can save their favorite snacks to a personalized diet plan.
 
+**Live Demo**: [https://hackathon-39uq.onrender.com/](https://hackathon-39uq.onrender.com/)
+
 ---
 
 ## 🚀 Features
@@ -29,8 +31,8 @@ Make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/healthy-snack-ideas-generator.git
-cd healthy-snack-ideas-generator
+git clone https://github.com/medmahmoudhdaya/hackathon.git
+cd hackathon
 ```
 
 ---
